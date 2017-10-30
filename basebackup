@@ -1,0 +1,19 @@
+#!/bin/bash
+
+BASEBACKUP_FILE=hello
+
+pg_basebackup
+
+MEMORY_ALPHA_S3_BUCKET=
+S3_KEY=basebackup/
+S3_DEST=s3://${MEMORY_ALPHA_S3_BUCKET}/${S3_KEY}
+
+aws s3api head-object --bucket ${MEMORY_ALPHA_S3_BUCKET} --key ${S3_KEY} > /dev/null 2>&1
+status=$?
+
+if [ $status = 0 ]; then
+	echo "key ${S3_KEY} exists already."
+	exit 2
+fi
+
+aws s3 cp --sse aws:kms ${BASEBACKUP_FILE} ${S3_DEST}
