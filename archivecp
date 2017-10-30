@@ -1,0 +1,15 @@
+#!/bin/bash
+
+MEMORY_ALPHA_S3_BUCKET=
+S3_KEY=wal/$2
+S3_DEST=s3://${MEMORY_ALPHA_S3_BUCKET}/${S3_KEY}
+
+aws s3api head-object --bucket ${MEMORY_ALPHA_S3_BUCKET} --key ${S3_KEY} > /dev/null 2>&1
+status=$?
+
+if [ $status = 0 ]; then
+	echo "key ${S3_KEY} exists already."
+	exit 2
+fi
+
+aws s3 cp --sse aws:kms $1 ${S3_DEST}
