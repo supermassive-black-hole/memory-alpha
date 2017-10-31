@@ -1,7 +1,9 @@
 #!/bin/bash
 
+set -e
+
 MEMORY_ALPHA_S3_BUCKET=
-S3_KEY=wal/$2
+S3_KEY=wal/$2.bz2
 S3_DEST=s3://${MEMORY_ALPHA_S3_BUCKET}/${S3_KEY}
 
 aws s3api head-object --bucket ${MEMORY_ALPHA_S3_BUCKET} --key ${S3_KEY} > /dev/null 2>&1
@@ -12,4 +14,6 @@ if [ $status = 0 ]; then
 	exit 2
 fi
 
-aws s3 cp --sse aws:kms $1 ${S3_DEST}
+bzip2 -c -9 $1 > /tmp/$2.bz2
+aws s3 cp --sse aws:kms /tmp/$2.bz2 ${S3_DEST}
+rm -f /tmp/$2.bz2

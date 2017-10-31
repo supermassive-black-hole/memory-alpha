@@ -1,11 +1,21 @@
 #!/bin/bash
 
-BASEBACKUP_FILE=hello
+set -e
 
-pg_basebackup
+DAY=`date -I`
+POSTGRES_BACKUP_DIR=/tmp/${DAY}
+sudo -u postgres -H sh -c "pg_basebackup -D${POSTGRES_BACKUP_DIR}"
+
+BACKUP_WAL_FILE=$(ls -t /var/lib/postgresql/data/pg_wal/*.backup | head -1)
+ARCHIVE_SUFFIX=${BACKUP_WAL_FILE:32:24}
+
+BASEBACKUP_FILE=/tmp/${DAY}-${ARCHIVE_SUFFIX}.tar.bz2
+pushd /tmp
+tar -c ${DAY} | bzip2 -9 > ${BASEBACKUP_FILE}
+popd
 
 MEMORY_ALPHA_S3_BUCKET=
-S3_KEY=basebackup/
+S3_KEY=base/${DAY}-${ARCHIVE_SUFFIX}.tar.bz2
 S3_DEST=s3://${MEMORY_ALPHA_S3_BUCKET}/${S3_KEY}
 
 aws s3api head-object --bucket ${MEMORY_ALPHA_S3_BUCKET} --key ${S3_KEY} > /dev/null 2>&1
@@ -13,7 +23,12 @@ status=$?
 
 if [ $status = 0 ]; then
 	echo "key ${S3_KEY} exists already."
+	rm -fr /tmp/${DAY}
+	rm -f ${BASEBACKUP_FILE}
 	exit 2
 fi
 
 aws s3 cp --sse aws:kms ${BASEBACKUP_FILE} ${S3_DEST}
+
+rm -fr /tmp/${DAY}
+rm -f ${BASEBACKUP_FILE}
