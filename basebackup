@@ -18,8 +18,12 @@ MEMORY_ALPHA_S3_BUCKET=
 S3_KEY=base/${DAY}-${ARCHIVE_SUFFIX}.tar.bz2
 S3_DEST=s3://${MEMORY_ALPHA_S3_BUCKET}/${S3_KEY}
 
+set +e
+
 aws s3api head-object --bucket ${MEMORY_ALPHA_S3_BUCKET} --key ${S3_KEY} > /dev/null 2>&1
 status=$?
+
+set -e
 
 if [ $status = 0 ]; then
 	echo "key ${S3_KEY} exists already."
