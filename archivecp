@@ -2,6 +2,8 @@
 
 set -e
 
+export PATH=/opt/conda/bin:$PATH
+
 MEMORY_ALPHA_S3_BUCKET=
 S3_KEY=wal/$2.bz2
 S3_DEST=s3://${MEMORY_ALPHA_S3_BUCKET}/${S3_KEY}
