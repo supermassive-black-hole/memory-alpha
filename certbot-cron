@@ -1,1 +1,4 @@
-47 2 * * * root PATH=/opt/conda/bin:$PATH /opt/memory-alpha/basebackup > /dev/stdout
+SHELL=/bin/sh
+PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+47 2 * * * root /opt/memory-alpha/basebackup > /dev/stdout
